@@ -779,3 +779,44 @@ Error codes:
         );
     }
 }
+
+#[test]
+fn enum_default() {
+    #[derive(PartialEq, Debug)]
+    enum Flag {
+        One,
+        Two,
+    }
+
+    impl Default for Flag {
+        fn default() -> Self {
+            Self::One
+        }
+    }
+
+    impl std::str::FromStr for Flag {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s {
+                "1" => Ok(Self::One),
+                "2" => Ok(Self::Two),
+                _ => Err(format!("found '{}'", s)),
+            }
+        }
+    }
+
+    /// description
+    #[derive(FromArgs, Debug)]
+    struct Arguments {
+        /// description
+        #[argh(option)]
+        flag: Flag,
+    }
+
+    let args = Arguments::from_args(&[], &[]);
+    eprintln!("{:#?}", args);
+    assert!(args.is_ok());
+    let args = args.unwrap();
+    assert_eq!(args.flag, Flag::One);
+}
